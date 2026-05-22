@@ -1,0 +1,650 @@
+:root {
+  /* 전체 색상은 CSS 변수로 관리해서 테마 변경이 쉽도록 했습니다. */
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --surface-soft: #eef5ff;
+  --surface-tint: #f8fbff;
+  --text: #1c2533;
+  --muted: #6c788b;
+  --line: #dce5f1;
+  --primary: #4f7ee8;
+  --primary-dark: #365fc7;
+  --accent: #54c6a4;
+  --danger: #e85f5f;
+  --warning: #f0b84d;
+  --shadow: 0 14px 34px rgba(47, 71, 109, 0.09);
+  --shadow-soft: 0 8px 20px rgba(47, 71, 109, 0.07);
+  --radius: 8px;
+}
+
+body.dark {
+  /* body에 dark 클래스가 붙으면 같은 변수 이름에 어두운 색을 넣습니다. */
+  --bg: #101722;
+  --surface: #182231;
+  --surface-soft: #243247;
+  --surface-tint: #1d2a3c;
+  --text: #edf3fb;
+  --muted: #a7b4c7;
+  --line: #304055;
+  --primary: #80a8ff;
+  --primary-dark: #5f8ced;
+  --accent: #6bd5b8;
+  --danger: #ff7777;
+  --warning: #f5c96c;
+  --shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+  --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(79, 126, 232, 0.12), transparent 34rem),
+    var(--bg);
+  color: var(--text);
+  font-family: Arial, "Noto Sans KR", sans-serif;
+  line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+.app-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 48px;
+}
+
+.app-header,
+.quote-panel,
+.card {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+body.dark .app-header,
+body.dark .quote-panel,
+body.dark .card {
+  background: rgba(24, 34, 49, 0.92);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 4px;
+  font-size: 2rem;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin-bottom: 0;
+  font-size: 1.22rem;
+}
+
+h3 {
+  margin: 22px 0 10px;
+  font-size: 1rem;
+}
+
+.today-label,
+.muted,
+.empty-message,
+.notice {
+  color: var(--muted);
+}
+
+.quote-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0;
+  padding: 16px 18px;
+}
+
+.quote-panel p {
+  margin: 0;
+  font-weight: 800;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 18px;
+}
+
+.card {
+  padding: 22px;
+}
+
+.focus-card {
+  grid-column: span 7;
+}
+
+.task-card {
+  grid-column: span 5;
+}
+
+.goal-card,
+.exam-card,
+.memo-card {
+  grid-column: span 4;
+}
+
+.records-card {
+  grid-column: span 8;
+}
+
+.section-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button,
+.wide-button {
+  min-height: 42px;
+  border-radius: var(--radius);
+  padding: 0 16px;
+  font-weight: 800;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.primary-button {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.primary-button:hover {
+  background: var(--primary-dark);
+}
+
+.secondary-button {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+.ghost-button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.wide-button {
+  width: 100%;
+  margin-top: 14px;
+  background: var(--text);
+  color: var(--surface);
+}
+
+.primary-button:active,
+.secondary-button:active,
+.ghost-button:active,
+.wide-button:active {
+  transform: translateY(1px);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(79, 126, 232, 0.14);
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.timer-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 16px;
+  align-items: stretch;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--surface-tint), var(--surface-soft));
+}
+
+.timer-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.timer-display,
+.focus-timer-display {
+  color: var(--text);
+  font-weight: 900;
+  text-align: left;
+  letter-spacing: 0;
+}
+
+.timer-display {
+  margin: 6px 0 4px;
+  font-size: clamp(4.1rem, 10vw, 6.6rem);
+  line-height: 1;
+}
+
+.selected-subject {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.focus-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.summary-item,
+.stat-box {
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.summary-item span,
+.stat-box span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.summary-item strong,
+.stat-box strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.3rem;
+}
+
+.timer-controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.notice {
+  min-height: 24px;
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+.timer-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-tint);
+}
+
+.timer-settings label {
+  display: grid;
+  gap: 6px;
+}
+
+.timer-settings label > span,
+.toggle-field span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.subject-select-wrap,
+.toggle-field,
+.settings-button {
+  grid-column: span 2;
+}
+
+.toggle-field {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+}
+
+.toggle-field input {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+}
+
+.task-form,
+.goal-form,
+.exam-form {
+  display: grid;
+  gap: 10px;
+}
+
+.task-form {
+  grid-template-columns: 1fr 1.4fr 52px auto;
+}
+
+.goal-form,
+.exam-form {
+  grid-template-columns: 1fr auto;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+}
+
+input,
+select {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+input[type="color"] {
+  padding: 4px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 190px;
+  padding: 14px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 126, 232, 0.15);
+}
+
+.task-list,
+.subject-time-list,
+.exam-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.task-item,
+.exam-item,
+.subject-time-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.task-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.task-main input {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+}
+
+.subject-dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.task-text,
+.exam-text {
+  min-width: 0;
+}
+
+.task-text strong,
+.exam-text strong {
+  display: block;
+}
+
+.task-text span,
+.exam-text span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.task-item.done .task-text {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.small-button,
+.danger-button {
+  min-height: 34px;
+  border-radius: var(--radius);
+  padding: 0 10px;
+  font-weight: 800;
+}
+
+.small-button {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+.danger-button {
+  background: rgba(232, 95, 95, 0.13);
+  color: var(--danger);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0 8px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.progress-bar {
+  height: 13px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-soft);
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 0.25s ease;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stat-box {
+  min-height: 92px;
+  background: var(--surface-soft);
+}
+
+.subject-time-item span:last-child {
+  font-weight: 900;
+}
+
+.exam-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.save-text {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.focus-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(16, 23, 34, 0.9);
+  z-index: 10;
+}
+
+.focus-overlay.open {
+  display: flex;
+}
+
+.focus-mode {
+  width: min(720px, 100%);
+  padding: 36px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.focus-mode .selected-subject,
+.focus-mode .status-pill {
+  display: inline-flex;
+  margin-right: 8px;
+}
+
+.focus-timer-display {
+  margin: 18px 0;
+  font-size: clamp(4.8rem, 18vw, 9.5rem);
+  line-height: 1;
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .focus-card,
+  .task-card,
+  .goal-card,
+  .records-card,
+  .exam-card,
+  .memo-card {
+    grid-column: span 12;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  /* 모바일에서는 입력 폼과 버튼 묶음을 세로로 쌓아 터치하기 쉽게 만듭니다. */
+  .app-shell {
+    width: min(100% - 20px, 1180px);
+    padding-top: 14px;
+  }
+
+  .app-header,
+  .quote-panel {
+    align-items: flex-start;
+  }
+
+  .app-header,
+  .quote-panel,
+  .section-title,
+  .task-item,
+  .exam-item {
+    flex-direction: column;
+  }
+
+  .timer-hero,
+  .task-form,
+  .goal-form,
+  .exam-form,
+  .timer-controls,
+  .timer-settings,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subject-select-wrap,
+  .toggle-field,
+  .settings-button {
+    grid-column: span 1;
+  }
+
+  .timer-display {
+    font-size: clamp(3.5rem, 22vw, 5rem);
+  }
+
+  .exam-actions {
+    width: 100%;
+  }
+
+  .exam-actions button {
+    flex: 1;
+  }
+}
