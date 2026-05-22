@@ -8,21 +8,55 @@
 </head>
 <body>
   <div class="app-shell">
-    <header class="app-header">
-      <div>
-        <p class="eyebrow">학생용 공부 관리 웹앱</p>
-        <h1>StudyFlow Web</h1>
+    <aside class="desktop-briefing">
+      <div class="briefing-hero">
+        <p class="eyebrow">StudyFlow Web</p>
+        <h1>오늘의 공부</h1>
         <p id="todayLabel" class="today-label"></p>
       </div>
-      <button id="themeToggle" class="icon-button" type="button" aria-label="다크모드 전환">☀</button>
-    </header>
+      <div class="briefing-metrics">
+        <div class="briefing-metric main">
+          <span>오늘 공부</span>
+          <strong id="briefingTodayStudy">0분</strong>
+        </div>
+        <div class="briefing-metric">
+          <span>목표 진행</span>
+          <strong id="briefingGoalPercent">0%</strong>
+        </div>
+        <div class="briefing-metric">
+          <span>남은 할 일</span>
+          <strong id="briefingRemainingTasks">0개</strong>
+        </div>
+        <div class="briefing-metric">
+          <span>가까운 D-day</span>
+          <strong id="briefingNextDday">없음</strong>
+        </div>
+      </div>
+      <div class="briefing-note">
+        <span>오늘 메모</span>
+        <p id="briefingMemoPreview">아직 메모가 없습니다.</p>
+      </div>
+      <div class="briefing-quote">
+        <p id="quoteText"></p>
+        <button id="newQuoteButton" class="secondary-button" type="button">새 문구 보기</button>
+      </div>
+    </aside>
 
-    <section class="quote-panel">
-      <p id="quoteText"></p>
-      <button id="newQuoteButton" class="secondary-button" type="button">새 문구 보기</button>
-    </section>
+    <div class="app-main">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">학생용 공부 관리 웹앱</p>
+          <h1>StudyFlow Web</h1>
+          <p id="mobileTodayLabel" class="today-label"></p>
+        </div>
+        <button id="themeToggle" class="icon-button" type="button" aria-label="다크모드 전환">☀</button>
+      </header>
 
-    <nav id="sectionNav" class="section-nav" aria-label="주요 기능">
+      <section class="quote-panel">
+        <p id="mobileQuoteText"></p>
+      </section>
+
+      <nav id="sectionNav" class="section-nav" aria-label="주요 기능">
       <button class="nav-button active" type="button" data-section="today" aria-label="오늘 섹션">
         <span class="nav-icon">⌂</span>
         <span>오늘</span>
@@ -43,9 +77,9 @@
         <span class="nav-icon">⚙</span>
         <span>설정</span>
       </button>
-    </nav>
+      </nav>
 
-    <main>
+      <main>
       <section id="section-today" class="app-section active">
         <div class="mobile-section-title">
           <p class="eyebrow">Today</p>
@@ -384,7 +418,8 @@
           </section>
         </div>
       </section>
-    </main>
+      </main>
+    </div>
   </div>
 
   <div id="focusOverlay" class="focus-overlay" aria-hidden="true">

@@ -189,16 +189,20 @@ function toDateKey(date) {
 }
 
 function showToday() {
-  elements.todayLabel.textContent = new Intl.DateTimeFormat("ko-KR", {
+  const todayText = new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
     weekday: "long"
   }).format(new Date());
+  elements.todayLabel.textContent = todayText;
+  elements.mobileTodayLabel.textContent = todayText;
 }
 
 function showRandomQuote() {
-  elements.quoteText.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+  const quote = quotes[Math.floor(Math.random() * quotes.length)];
+  elements.quoteText.textContent = quote;
+  elements.mobileQuoteText.textContent = quote;
 }
 
 function toggleTheme() {
@@ -884,6 +888,11 @@ function renderStats() {
   elements.summaryRemainingTasks.textContent = `${remainingTasks}개`;
   elements.streakCount.textContent = `${calculateStreak()}일 연속`;
   elements.summaryNextDday.textContent = getNextDdaySummary();
+  elements.briefingTodayStudy.textContent = formatMinutes(todayMinutes);
+  elements.briefingGoalPercent.textContent = `${progress}%`;
+  elements.briefingRemainingTasks.textContent = `${remainingTasks}개`;
+  elements.briefingNextDday.textContent = getNextDdaySummary();
+  elements.briefingMemoPreview.textContent = getMemoPreview();
   if (state.goalMinutes && todayMinutes >= state.goalMinutes && state.lastGoalCelebratedDate !== getTodayKey()) {
     state.lastGoalCelebratedDate = getTodayKey();
     saveState();
@@ -891,6 +900,13 @@ function renderStats() {
   }
   renderWeeklyBars();
   renderSubjectTimes();
+}
+
+function getMemoPreview() {
+  const memo = (state.memoByDate[getTodayKey()] || "").trim();
+  if (!memo) return "아직 메모가 없습니다.";
+  const firstLine = memo.split(/\r?\n/)[0];
+  return firstLine.length > 80 ? `${firstLine.slice(0, 80)}...` : firstLine;
 }
 
 function renderWeeklyBars() {
@@ -930,6 +946,7 @@ function renderSubjectTimes() {
 
 function renderMemo() {
   elements.memoInput.value = state.memoByDate[getTodayKey()] || "";
+  elements.briefingMemoPreview.textContent = getMemoPreview();
 }
 
 function renderAll() {
