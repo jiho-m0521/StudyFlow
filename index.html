@@ -22,151 +22,332 @@
       <button id="newQuoteButton" class="secondary-button" type="button">새 문구 보기</button>
     </section>
 
-    <main class="dashboard">
-      <section class="card focus-card">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Focus Dashboard</p>
-            <h2>오늘의 집중</h2>
+    <nav class="section-nav" aria-label="주요 기능">
+      <button class="nav-button active" type="button" data-section="today">오늘</button>
+      <button class="nav-button" type="button" data-section="timer">타이머</button>
+      <button class="nav-button" type="button" data-section="records">기록</button>
+      <button class="nav-button" type="button" data-section="schedule">일정</button>
+      <button class="nav-button" type="button" data-section="settings">설정</button>
+    </nav>
+
+    <main>
+      <section id="section-today" class="app-section active">
+        <div class="summary-strip">
+          <div class="summary-item">
+            <span>오늘 공부</span>
+            <strong id="summaryTodayStudy">0분</strong>
           </div>
-          <span id="timerStatus" class="status-pill">공부 중</span>
+          <div class="summary-item">
+            <span>목표 진행</span>
+            <strong id="summaryGoalPercent">0%</strong>
+          </div>
+          <div class="summary-item">
+            <span>남은 할 일</span>
+            <strong id="summaryRemainingTasks">0개</strong>
+          </div>
+          <div class="summary-item">
+            <span>가까운 D-day</span>
+            <strong id="summaryNextDday">없음</strong>
+          </div>
         </div>
 
-        <div class="timer-hero">
-          <div>
-            <span class="timer-label">현재 타이머</span>
-            <div id="timerDisplay" class="timer-display">25:00</div>
-            <p id="selectedSubjectLabel" class="selected-subject">현재 과목: 기타</p>
-          </div>
-          <div class="focus-summary">
-            <div class="summary-item">
-              <span>오늘 공부</span>
-              <strong id="timerTodayStudyTime">0분</strong>
+        <div class="section-grid">
+          <section class="card task-card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Today</p>
+                <h2>오늘의 공부 목록</h2>
+              </div>
+              <span id="taskCountBadge" class="status-pill">0 / 0</span>
             </div>
-            <div class="summary-item">
-              <span>목표 진행</span>
-              <strong id="timerGoalPercent">0%</strong>
+            <form id="taskForm" class="task-form">
+              <select id="subjectInput" aria-label="과목"></select>
+              <input id="taskInput" type="text" placeholder="할 일" aria-label="할 일" required>
+              <input id="colorInput" type="color" value="#5b8def" aria-label="과목 색상">
+              <button class="primary-button" type="submit">추가</button>
+            </form>
+            <ul id="taskList" class="task-list"></ul>
+            <p id="emptyTaskMessage" class="empty-message">아직 오늘 할 일이 없어요. 첫 공부를 추가해볼까요?</p>
+          </section>
+
+          <section class="card goal-card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Goal</p>
+                <h2>오늘 목표 시간</h2>
+              </div>
             </div>
-          </div>
-        </div>
+            <form id="goalForm" class="goal-form">
+              <input id="goalHoursInput" type="number" min="0" max="24" step="0.5" placeholder="예: 4" aria-label="오늘 목표 시간">
+              <button class="primary-button" type="submit">설정</button>
+            </form>
+            <div class="progress-info">
+              <span id="goalText">목표 0시간</span>
+              <span id="goalPercent">0%</span>
+            </div>
+            <div class="progress-bar" aria-label="목표 진행률">
+              <div id="goalProgress" class="progress-fill"></div>
+            </div>
+            <p id="goalMessage" class="helper-text">오늘의 목표를 정하면 진행률이 표시됩니다.</p>
+          </section>
 
-        <div class="timer-controls">
-          <button id="startTimerButton" class="primary-button" type="button">시작</button>
-          <button id="pauseTimerButton" class="secondary-button" type="button">일시정지</button>
-          <button id="resetTimerButton" class="ghost-button" type="button">초기화</button>
-        </div>
-        <p id="timerNotice" class="notice" aria-live="polite"></p>
-
-        <form id="timerSettingsForm" class="timer-settings">
-          <label>
-            <span>공부 시간</span>
-            <input id="studyMinutesInput" type="number" min="1" max="120" step="1" aria-label="공부 시간">
-          </label>
-          <label>
-            <span>휴식 시간</span>
-            <input id="breakMinutesInput" type="number" min="1" max="60" step="1" aria-label="휴식 시간">
-          </label>
-          <label class="subject-select-wrap">
-            <span>현재 과목</span>
-            <select id="timerSubjectSelect" aria-label="현재 과목"></select>
-          </label>
-          <label class="toggle-field">
-            <input id="autoStartToggle" type="checkbox">
-            <span>다음 라운드 자동 시작</span>
-          </label>
-          <button class="secondary-button settings-button" type="submit">설정 저장</button>
-        </form>
-        <button id="focusModeButton" class="wide-button" type="button">집중 모드 열기</button>
-      </section>
-
-      <section class="card task-card">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Today</p>
-            <h2>오늘의 공부 목록</h2>
-          </div>
-        </div>
-        <form id="taskForm" class="task-form">
-          <input id="subjectInput" type="text" placeholder="과목" aria-label="과목" required>
-          <input id="taskInput" type="text" placeholder="할 일" aria-label="할 일" required>
-          <input id="colorInput" type="color" value="#5b8def" aria-label="과목 색상">
-          <button class="primary-button" type="submit">추가</button>
-        </form>
-        <ul id="taskList" class="task-list"></ul>
-        <p id="emptyTaskMessage" class="empty-message">오늘 할 일을 추가해 보세요.</p>
-      </section>
-
-      <section class="card goal-card">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Goal</p>
-            <h2>오늘 목표 시간</h2>
-          </div>
-        </div>
-        <form id="goalForm" class="goal-form">
-          <input id="goalHoursInput" type="number" min="0" max="24" step="0.5" placeholder="예: 4" aria-label="오늘 목표 시간">
-          <button class="primary-button" type="submit">설정</button>
-        </form>
-        <div class="progress-info">
-          <span id="goalText">목표 0시간</span>
-          <span id="goalPercent">0%</span>
-        </div>
-        <div class="progress-bar" aria-label="목표 진행률">
-          <div id="goalProgress" class="progress-fill"></div>
+          <section class="card memo-card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Memo</p>
+                <h2>오늘의 메모</h2>
+              </div>
+              <span id="memoSaveText" class="save-text">자동 저장</span>
+            </div>
+            <textarea id="memoInput" rows="8" placeholder="오늘 공부하면서 기억할 내용을 적어 보세요."></textarea>
+          </section>
         </div>
       </section>
 
-      <section class="card records-card">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Records</p>
-            <h2>공부 시간 기록</h2>
-          </div>
+      <section id="section-timer" class="app-section">
+        <div class="section-grid">
+          <section class="card focus-card wide-card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Pomodoro</p>
+                <h2>집중 타이머</h2>
+              </div>
+              <span id="timerStatus" class="status-pill">공부 중</span>
+            </div>
+            <div class="timer-hero">
+              <div>
+                <span class="timer-label">현재 타이머</span>
+                <div id="timerDisplay" class="timer-display">25:00</div>
+                <p id="selectedSubjectLabel" class="selected-subject">현재 과목: 기타</p>
+              </div>
+              <div class="focus-summary">
+                <div class="summary-item">
+                  <span>오늘 공부</span>
+                  <strong id="timerTodayStudyTime">0분</strong>
+                </div>
+                <div class="summary-item">
+                  <span>목표 진행</span>
+                  <strong id="timerGoalPercent">0%</strong>
+                </div>
+              </div>
+            </div>
+            <div class="timer-controls">
+              <button id="startTimerButton" class="primary-button" type="button">시작</button>
+              <button id="pauseTimerButton" class="secondary-button" type="button">일시정지</button>
+              <button id="resetTimerButton" class="ghost-button" type="button">초기화</button>
+            </div>
+            <p id="timerNotice" class="notice" aria-live="polite"></p>
+            <details class="settings-details">
+              <summary>타이머 설정</summary>
+              <form id="timerSettingsForm" class="timer-settings">
+                <label>
+                  <span>공부 시간</span>
+                  <input id="studyMinutesInput" type="number" min="1" max="120" step="1" aria-label="공부 시간">
+                </label>
+                <label>
+                  <span>휴식 시간</span>
+                  <input id="breakMinutesInput" type="number" min="1" max="60" step="1" aria-label="휴식 시간">
+                </label>
+                <label class="subject-select-wrap">
+                  <span>현재 과목</span>
+                  <select id="timerSubjectSelect" aria-label="현재 과목"></select>
+                </label>
+                <label class="toggle-field">
+                  <input id="autoStartToggle" type="checkbox">
+                  <span>다음 라운드 자동 시작</span>
+                </label>
+                <button class="secondary-button settings-button" type="submit">설정 저장</button>
+              </form>
+            </details>
+            <button id="focusModeButton" class="wide-button" type="button">집중 모드 열기</button>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Subjects</p>
+                <h2>과목 관리</h2>
+              </div>
+            </div>
+            <form id="subjectForm" class="stack-form">
+              <input id="subjectNameInput" type="text" placeholder="과목 이름" aria-label="과목 이름" required>
+              <input id="subjectGoalInput" type="number" min="0" max="24" step="0.5" placeholder="일일 목표 시간(선택)" aria-label="과목 일일 목표 시간">
+              <input id="subjectColorInput" type="color" value="#5b8def" aria-label="과목 색상">
+              <button id="subjectSubmitButton" class="primary-button" type="submit">과목 저장</button>
+            </form>
+            <ul id="subjectList" class="compact-list"></ul>
+            <p id="emptySubjectManageMessage" class="empty-message">자주 공부하는 과목을 등록해두면 기록이 깔끔해집니다.</p>
+          </section>
         </div>
-        <div class="stats-grid">
-          <div class="stat-box">
-            <span>오늘 총 공부</span>
-            <strong id="todayStudyTime">0분</strong>
-          </div>
-          <div class="stat-box">
-            <span>이번 주 총 공부</span>
-            <strong id="weekStudyTime">0분</strong>
-          </div>
-          <div class="stat-box">
-            <span>연속 공부</span>
-            <strong id="streakCount">0일</strong>
-          </div>
-        </div>
-        <h3>과목별 공부 시간</h3>
-        <ul id="subjectTimeList" class="subject-time-list"></ul>
-        <p id="emptySubjectMessage" class="empty-message">아직 저장된 공부 시간이 없습니다.</p>
       </section>
 
-      <section class="card exam-card">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">D-day</p>
-            <h2>시험 일정</h2>
-          </div>
+      <section id="section-records" class="app-section">
+        <div class="section-grid">
+          <section class="card wide-card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Report</p>
+                <h2>주간 리포트</h2>
+              </div>
+              <span id="streakCount" class="status-pill">0일</span>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-box">
+                <span>오늘 총 공부</span>
+                <strong id="todayStudyTime">0분</strong>
+              </div>
+              <div class="stat-box">
+                <span>이번 주 총 공부</span>
+                <strong id="weekStudyTime">0분</strong>
+              </div>
+              <div class="stat-box">
+                <span>이번 주 평균</span>
+                <strong id="weekAverageStudyTime">0분</strong>
+              </div>
+            </div>
+            <div id="weeklyBars" class="weekly-bars"></div>
+            <h3>과목별 공부 시간</h3>
+            <ul id="subjectTimeList" class="subject-time-list"></ul>
+            <p id="emptySubjectMessage" class="empty-message">아직 저장된 공부 시간이 없습니다.</p>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Manual</p>
+                <h2>공부 기록 추가/수정</h2>
+              </div>
+            </div>
+            <form id="recordForm" class="stack-form">
+              <input id="recordIdInput" type="hidden">
+              <input id="recordDateInput" type="date" aria-label="기록 날짜" required>
+              <select id="recordSubjectInput" aria-label="기록 과목"></select>
+              <input id="recordMinutesInput" type="number" min="1" max="1440" step="1" placeholder="공부 시간(분)" aria-label="공부 시간" required>
+              <button id="recordSubmitButton" class="primary-button" type="submit">기록 저장</button>
+              <button id="recordCancelButton" class="ghost-button" type="button">수정 취소</button>
+            </form>
+            <ul id="sessionList" class="compact-list"></ul>
+            <p id="emptySessionMessage" class="empty-message">수동으로 추가하거나 타이머를 완료하면 기록이 쌓입니다.</p>
+          </section>
         </div>
-        <form id="examForm" class="exam-form">
-          <input id="examNameInput" type="text" placeholder="시험 이름" aria-label="시험 이름" required>
-          <input id="examDateInput" type="date" aria-label="시험 날짜" required>
-          <button id="examSubmitButton" class="primary-button" type="submit">추가</button>
-        </form>
-        <ul id="examList" class="exam-list"></ul>
-        <p id="emptyExamMessage" class="empty-message">시험 일정을 추가해 보세요.</p>
       </section>
 
-      <section class="card memo-card">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Memo</p>
-            <h2>오늘의 메모</h2>
-          </div>
-          <span id="memoSaveText" class="save-text">자동 저장</span>
+      <section id="section-schedule" class="app-section">
+        <div class="section-grid">
+          <section class="card wide-card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Calendar</p>
+                <h2>캘린더 일정</h2>
+              </div>
+              <div class="month-controls">
+                <button id="prevMonthButton" class="ghost-button" type="button">이전</button>
+                <strong id="calendarTitle"></strong>
+                <button id="nextMonthButton" class="ghost-button" type="button">다음</button>
+              </div>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <h3 id="selectedDateTitle">선택한 날짜</h3>
+            <ul id="selectedDateEventList" class="compact-list"></ul>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Schedule</p>
+                <h2>일정 추가</h2>
+              </div>
+            </div>
+            <form id="scheduleForm" class="stack-form">
+              <input id="scheduleIdInput" type="hidden">
+              <input id="scheduleTitleInput" type="text" placeholder="일정 제목" aria-label="일정 제목" required>
+              <input id="scheduleDateInput" type="date" aria-label="일정 날짜" required>
+              <select id="scheduleTypeInput" aria-label="일정 종류">
+                <option value="study">공부</option>
+                <option value="assignment">과제</option>
+                <option value="exam">시험</option>
+                <option value="etc">기타</option>
+              </select>
+              <button id="scheduleSubmitButton" class="primary-button" type="submit">일정 저장</button>
+              <button id="scheduleCancelButton" class="ghost-button" type="button">수정 취소</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">D-day</p>
+                <h2>시험 일정</h2>
+              </div>
+            </div>
+            <form id="examForm" class="exam-form">
+              <input id="examNameInput" type="text" placeholder="시험 이름" aria-label="시험 이름" required>
+              <input id="examDateInput" type="date" aria-label="시험 날짜" required>
+              <button id="examSubmitButton" class="primary-button" type="submit">추가</button>
+            </form>
+            <ul id="examList" class="exam-list"></ul>
+            <p id="emptyExamMessage" class="empty-message">시험 일정을 추가해 보세요.</p>
+          </section>
+
+          <section class="card wide-card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Timetable</p>
+                <h2>시간표 관리</h2>
+              </div>
+            </div>
+            <form id="timetableForm" class="timetable-form">
+              <input id="timetableIdInput" type="hidden">
+              <select id="timetableDayInput" aria-label="요일">
+                <option value="1">월</option>
+                <option value="2">화</option>
+                <option value="3">수</option>
+                <option value="4">목</option>
+                <option value="5">금</option>
+                <option value="6">토</option>
+                <option value="0">일</option>
+              </select>
+              <input id="timetableStartInput" type="time" aria-label="시작 시간" required>
+              <input id="timetableEndInput" type="time" aria-label="종료 시간" required>
+              <select id="timetableSubjectInput" aria-label="시간표 과목"></select>
+              <input id="timetableMemoInput" type="text" placeholder="메모(선택)" aria-label="시간표 메모">
+              <button id="timetableSubmitButton" class="primary-button" type="submit">시간표 저장</button>
+              <button id="timetableCancelButton" class="ghost-button" type="button">수정 취소</button>
+            </form>
+            <div id="timetableGrid" class="timetable-grid"></div>
+          </section>
         </div>
-        <textarea id="memoInput" rows="9" placeholder="오늘 공부하면서 기억할 내용을 적어 보세요."></textarea>
+      </section>
+
+      <section id="section-settings" class="app-section">
+        <div class="section-grid">
+          <section class="card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Data</p>
+                <h2>데이터 백업/복원</h2>
+              </div>
+            </div>
+            <div class="button-row">
+              <button id="exportDataButton" class="primary-button" type="button">백업 파일 만들기</button>
+              <label class="file-button">
+                복원 파일 선택
+                <input id="importDataInput" type="file" accept="application/json">
+              </label>
+            </div>
+            <p class="helper-text">브라우저 저장 데이터를 JSON 파일로 보관하거나 다시 가져올 수 있습니다.</p>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Theme</p>
+                <h2>화면 설정</h2>
+              </div>
+            </div>
+            <p class="helper-text">상단 버튼으로 라이트/다크 모드를 전환할 수 있습니다. 선택한 테마는 자동 저장됩니다.</p>
+          </section>
+        </div>
       </section>
     </main>
   </div>
@@ -185,6 +366,8 @@
       <button id="closeFocusButton" class="wide-button" type="button">집중 모드 닫기</button>
     </div>
   </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="script.js"></script>
 </body>
