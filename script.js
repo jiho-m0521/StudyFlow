@@ -15,6 +15,13 @@ const defaultState = {
   subjects: [],
   schedules: [],
   timetable: [],
+  googleCalendar: {
+    clientId: "",
+    accessToken: "",
+    tokenExpiresAt: 0,
+    calendarId: "primary",
+    profileName: ""
+  },
   goalMinutes: 0,
   exams: [],
   memoByDate: {},
@@ -51,6 +58,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 
 function initializeApp() {
   cacheElements();
+  handleGoogleAuthRedirect();
   applyTheme();
   showToday();
   showRandomQuote();
@@ -72,6 +80,7 @@ function bindEvents() {
   elements.taskForm.addEventListener("submit", addTask);
   elements.goalForm.addEventListener("submit", saveGoal);
   elements.memoInput.addEventListener("input", saveMemo);
+  elements.briefingMemoInput.addEventListener("input", saveBriefingMemo);
   elements.timerSettingsForm.addEventListener("submit", saveTimerSettings);
   elements.timerSubjectSelect.addEventListener("change", saveSelectedSubject);
   elements.autoStartToggle.addEventListener("change", saveTimerSettings);
@@ -93,6 +102,11 @@ function bindEvents() {
   elements.examForm.addEventListener("submit", saveExam);
   elements.timetableForm.addEventListener("submit", saveTimetable);
   elements.timetableCancelButton.addEventListener("click", resetTimetableForm);
+  elements.googleSettingsForm.addEventListener("submit", saveGoogleCalendarSettings);
+  elements.googleConnectButton.addEventListener("click", connectGoogleCalendar);
+  elements.googleDisconnectButton.addEventListener("click", disconnectGoogleCalendar);
+  elements.googleImportButton.addEventListener("click", importGoogleCalendarEvents);
+  elements.googleExportButton.addEventListener("click", exportSchedulesToGoogleCalendar);
   elements.exportDataButton.addEventListener("click", exportData);
   elements.importDataInput.addEventListener("change", importData);
 }
@@ -114,12 +128,17 @@ function loadState() {
 function normalizeState(savedState) {
   const merged = { ...defaultState, ...(savedState || {}) };
   merged.tasks = Array.isArray(merged.tasks) ? merged.tasks : [];
+  merged.tasks = merged.tasks.filter((task) => !task.done);
   merged.sessions = Array.isArray(merged.sessions) ? merged.sessions : [];
   merged.subjects = Array.isArray(merged.subjects) ? merged.subjects : [];
   merged.schedules = Array.isArray(merged.schedules) ? merged.schedules : [];
   merged.timetable = Array.isArray(merged.timetable) ? merged.timetable : [];
   merged.exams = Array.isArray(merged.exams) ? merged.exams : [];
   merged.memoByDate = merged.memoByDate && typeof merged.memoByDate === "object" ? merged.memoByDate : {};
+  merged.googleCalendar = {
+    ...defaultState.googleCalendar,
+    ...(merged.googleCalendar || {})
+  };
   merged.timerSettings = { ...defaultTimerSettings, ...(merged.timerSettings || {}) };
   merged.timerSettings.studyMinutes = clampNumber(merged.timerSettings.studyMinutes, 1, 120, 25);
   merged.timerSettings.breakMinutes = clampNumber(merged.timerSettings.breakMinutes, 1, 60, 5);
@@ -238,10 +257,17 @@ function addTask(event) {
   showToast("오늘 할 일을 추가했습니다.");
 }
 
-function toggleTask(taskId) {
-  state.tasks = state.tasks.map((task) => task.id === taskId ? { ...task, done: !task.done } : task);
-  saveState();
-  renderAll();
+function completeTask(taskId, checkboxElement) {
+  const item = checkboxElement.closest(".list-item");
+  createTaskBurst(checkboxElement);
+  if (item) item.classList.add("completing");
+  setTimeout(() => {
+    state.tasks = state.tasks.filter((task) => task.id !== taskId);
+    ensureSelectedSubjectExists();
+    saveState();
+    renderAll();
+    showToast("할 일을 완료하고 정리했습니다.");
+  }, 620);
 }
 
 function deleteTask(taskId) {
@@ -250,6 +276,23 @@ function deleteTask(taskId) {
   saveState();
   renderAll();
   showToast("할 일을 삭제했습니다.");
+}
+
+function createTaskBurst(anchorElement) {
+  const rect = anchorElement.getBoundingClientRect();
+  const burst = document.createElement("span");
+  burst.className = "task-burst";
+  burst.style.left = `${rect.left + rect.width / 2}px`;
+  burst.style.top = `${rect.top + rect.height / 2}px`;
+  for (let index = 0; index < 10; index += 1) {
+    const dot = document.createElement("span");
+    dot.style.setProperty("--angle", `${index * 36}deg`);
+    dot.style.setProperty("--distance", `${18 + (index % 3) * 7}px`);
+    dot.style.setProperty("--burst-color", ["#4f7ee8", "#54c6a4", "#f0b84d", "#e85f5f"][index % 4]);
+    burst.appendChild(dot);
+  }
+  document.body.appendChild(burst);
+  setTimeout(() => burst.remove(), 700);
 }
 
 function renderTasks() {
@@ -263,17 +306,15 @@ function renderTasks() {
     item.className = `list-item ${task.done ? "done" : ""}`;
     item.innerHTML = `
       <div class="list-main">
-        <input type="checkbox" ${task.done ? "checked" : ""} aria-label="완료">
+        <input class="task-check" type="checkbox" ${task.done ? "checked" : ""} aria-label="완료">
         <span class="subject-dot" style="background:${task.color}"></span>
         <div>
           <strong>${escapeHtml(task.subject)}</strong>
           <span>${escapeHtml(task.title)}</span>
         </div>
       </div>
-      <button class="danger-button" type="button">삭제</button>
     `;
-    item.querySelector("input").addEventListener("change", () => toggleTask(task.id));
-    item.querySelector("button").addEventListener("click", () => deleteTask(task.id));
+    item.querySelector("input").addEventListener("change", (event) => completeTask(task.id, event.currentTarget));
     elements.taskList.appendChild(item);
   });
 }
@@ -512,12 +553,25 @@ function saveGoal(event) {
 }
 
 function saveMemo() {
-  state.memoByDate[getTodayKey()] = elements.memoInput.value;
-  elements.memoSaveText.textContent = "저장됨";
+  saveMemoValue(elements.memoInput.value, true);
+}
+
+function saveBriefingMemo() {
+  saveMemoValue(elements.briefingMemoInput.value, false);
+}
+
+function saveMemoValue(value, showSavedText) {
+  state.memoByDate[getTodayKey()] = value;
+  if (elements.memoInput.value !== value) elements.memoInput.value = value;
+  if (elements.briefingMemoInput.value !== value) elements.briefingMemoInput.value = value;
   saveState();
-  setTimeout(() => {
-    elements.memoSaveText.textContent = "자동 저장";
-  }, 900);
+  if (showSavedText) {
+    elements.memoSaveText.textContent = "저장됨";
+    clearTimeout(saveMemoValue.timerId);
+    saveMemoValue.timerId = setTimeout(() => {
+      elements.memoSaveText.textContent = "자동 저장";
+    }, 900);
+  }
 }
 
 function saveManualRecord(event) {
@@ -599,7 +653,8 @@ function saveSchedule(event) {
     id: id || Date.now(),
     title: elements.scheduleTitleInput.value.trim(),
     date: elements.scheduleDateInput.value,
-    type: elements.scheduleTypeInput.value
+    type: elements.scheduleTypeInput.value,
+    googleEventId: id ? state.schedules.find((item) => item.id === id)?.googleEventId || "" : ""
   };
   if (!schedule.title || !schedule.date) return;
   if (id) {
@@ -638,6 +693,215 @@ function resetScheduleForm() {
   elements.scheduleIdInput.value = "";
   elements.scheduleDateInput.value = getTodayKey();
   elements.scheduleSubmitButton.textContent = "일정 저장";
+}
+
+function saveGoogleCalendarSettings(event) {
+  event.preventDefault();
+  state.googleCalendar.clientId = elements.googleClientIdInput.value.trim();
+  if (!state.googleCalendar.clientId) {
+    state.googleCalendar.accessToken = "";
+    state.googleCalendar.tokenExpiresAt = 0;
+    state.googleCalendar.profileName = "";
+  }
+  saveState();
+  renderGoogleCalendarSettings();
+  showToast("Google Calendar 설정을 저장했습니다.");
+}
+
+function connectGoogleCalendar() {
+  const clientId = state.googleCalendar.clientId || elements.googleClientIdInput.value.trim();
+  if (!clientId) {
+    showToast("먼저 Google OAuth Client ID를 입력해 주세요.");
+    return;
+  }
+  state.googleCalendar.clientId = clientId;
+  saveState();
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: getGoogleRedirectUri(),
+    response_type: "token",
+    scope: "https://www.googleapis.com/auth/calendar.events",
+    include_granted_scopes: "true",
+    prompt: "consent",
+    state: "studyflow-google-calendar"
+  });
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  const popup = window.open(authUrl, "studyflow-google-login", "width=520,height=720");
+  if (!popup) {
+    window.location.href = authUrl;
+    return;
+  }
+  const timer = setInterval(() => {
+    try {
+      if (popup.closed) {
+        clearInterval(timer);
+        renderGoogleCalendarSettings();
+        return;
+      }
+      const hash = popup.location.hash;
+      if (!hash || !hash.includes("access_token")) return;
+      saveGoogleTokenFromHash(hash);
+      popup.close();
+      clearInterval(timer);
+      renderGoogleCalendarSettings();
+      showToast("Google Calendar에 연결했습니다.");
+    } catch (error) {
+      // Google 로그인 화면은 다른 도메인이므로 리디렉션 전까지 접근할 수 없습니다.
+    }
+  }, 500);
+}
+
+function handleGoogleAuthRedirect() {
+  if (!window.location.hash.includes("access_token")) return;
+  saveGoogleTokenFromHash(window.location.hash);
+  history.replaceState(null, document.title, `${location.pathname}${location.search}`);
+}
+
+function saveGoogleTokenFromHash(hash) {
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const token = params.get("access_token");
+  const expiresIn = Number(params.get("expires_in") || 3600);
+  if (!token) return;
+  state.googleCalendar.accessToken = token;
+  state.googleCalendar.tokenExpiresAt = Date.now() + Math.max(60, expiresIn - 60) * 1000;
+  saveState();
+}
+
+function disconnectGoogleCalendar() {
+  state.googleCalendar.accessToken = "";
+  state.googleCalendar.tokenExpiresAt = 0;
+  state.googleCalendar.profileName = "";
+  saveState();
+  renderGoogleCalendarSettings();
+  showToast("Google Calendar 연결을 해제했습니다.");
+}
+
+async function importGoogleCalendarEvents() {
+  if (!hasValidGoogleToken()) {
+    showToast("Google 로그인이 필요합니다.");
+    return;
+  }
+  const start = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth(), 1);
+  const end = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
+  const params = new URLSearchParams({
+    timeMin: start.toISOString(),
+    timeMax: end.toISOString(),
+    singleEvents: "true",
+    orderBy: "startTime",
+    maxResults: "80"
+  });
+  try {
+    const data = await fetchGoogleCalendar(`/events?${params.toString()}`);
+    const existingIds = new Set(state.schedules.map((schedule) => schedule.googleEventId).filter(Boolean));
+    let addedCount = 0;
+    (data.items || []).forEach((eventItem) => {
+      if (!eventItem.id || existingIds.has(eventItem.id)) return;
+      const date = getDateFromGoogleEvent(eventItem);
+      if (!date) return;
+      state.schedules.push({
+        id: Date.now() + Math.random(),
+        title: eventItem.summary || "Google 일정",
+        date,
+        type: "etc",
+        googleEventId: eventItem.id
+      });
+      addedCount += 1;
+    });
+    saveState();
+    renderAll();
+    showToast(`${addedCount}개의 Google 일정을 가져왔습니다.`);
+  } catch (error) {
+    showToast("Google 일정 가져오기에 실패했습니다.");
+  }
+}
+
+async function exportSchedulesToGoogleCalendar() {
+  if (!hasValidGoogleToken()) {
+    showToast("Google 로그인이 필요합니다.");
+    return;
+  }
+  const exportItems = [
+    ...state.schedules.map((item) => ({ ...item, source: "schedule" })),
+    ...state.exams.map((item) => ({
+      id: item.id,
+      title: item.name,
+      date: item.date,
+      type: "exam",
+      googleEventId: item.googleEventId || "",
+      source: "exam"
+    }))
+  ];
+  let exportedCount = 0;
+  try {
+    for (const item of exportItems) {
+      if (item.googleEventId) continue;
+      const nextDate = new Date(item.date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      const eventBody = {
+        summary: item.source === "exam" ? `[시험] ${item.title}` : item.title,
+        description: `StudyFlow Web에서 만든 ${getScheduleTypeLabel(item.type)} 일정입니다.`,
+        start: { date: item.date },
+        end: { date: toDateKey(nextDate) }
+      };
+      const created = await fetchGoogleCalendar("/events", {
+        method: "POST",
+        body: JSON.stringify(eventBody)
+      });
+      if (item.source === "schedule") {
+        state.schedules = state.schedules.map((schedule) => schedule.id === item.id ? { ...schedule, googleEventId: created.id } : schedule);
+      } else {
+        state.exams = state.exams.map((exam) => exam.id === item.id ? { ...exam, googleEventId: created.id } : exam);
+      }
+      exportedCount += 1;
+    }
+    saveState();
+    renderAll();
+    showToast(`${exportedCount}개의 일정을 Google Calendar로 보냈습니다.`);
+  } catch (error) {
+    showToast("Google Calendar 내보내기에 실패했습니다.");
+  }
+}
+
+function renderGoogleCalendarSettings() {
+  const google = state.googleCalendar;
+  elements.googleClientIdInput.value = google.clientId || "";
+  const connected = hasValidGoogleToken();
+  elements.googleStatusBadge.textContent = connected ? "연결됨" : "미연결";
+  elements.googleStatusBadge.classList.toggle("connected", connected);
+  elements.googleStatusText.textContent = connected
+    ? "앱의 일정 페이지와 Google Calendar를 가져오기/내보내기로 동기화할 수 있습니다."
+    : `Google Cloud OAuth Client ID가 필요합니다. 승인된 리디렉션 URI: ${getGoogleRedirectUri()}`;
+}
+
+function hasValidGoogleToken() {
+  return Boolean(state.googleCalendar.accessToken && state.googleCalendar.tokenExpiresAt > Date.now());
+}
+
+function getGoogleRedirectUri() {
+  return `${location.origin}${location.pathname}`;
+}
+
+async function fetchGoogleCalendar(path, options = {}) {
+  const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(state.googleCalendar.calendarId || "primary")}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${state.googleCalendar.accessToken}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+  if (response.status === 401) {
+    disconnectGoogleCalendar();
+    throw new Error("Google token expired");
+  }
+  if (!response.ok) throw new Error("Google Calendar request failed");
+  return response.json();
+}
+
+function getDateFromGoogleEvent(eventItem) {
+  if (eventItem.start?.date) return eventItem.start.date;
+  if (eventItem.start?.dateTime) return eventItem.start.dateTime.slice(0, 10);
+  return "";
 }
 
 function saveExam(event) {
@@ -839,33 +1103,80 @@ function resetTimetableForm() {
 
 function renderTimetable() {
   elements.timetableGrid.innerHTML = "";
-  [1, 2, 3, 4, 5, 6, 0].forEach((day) => {
-    const column = document.createElement("div");
-    column.className = "timetable-day";
-    column.innerHTML = `<strong>${WEEK_DAYS[day]}</strong>`;
-    const entries = state.timetable.filter((item) => item.day === day).sort((a, b) => a.start.localeCompare(b.start));
-    if (!entries.length) {
-      column.insertAdjacentHTML("beforeend", `<p class="empty-message">비어 있음</p>`);
-    }
-    entries.forEach((entry) => {
-      const block = document.createElement("div");
-      block.className = "timetable-block";
-      block.style.borderLeftColor = entry.color;
-      block.innerHTML = `
-        <strong>${escapeHtml(entry.subject)}</strong>
-        <span>${entry.start} - ${entry.end}</span>
-        ${entry.memo ? `<span>${escapeHtml(entry.memo)}</span>` : ""}
-        <div class="item-actions">
-          <button class="small-button edit" type="button">수정</button>
-          <button class="danger-button delete" type="button">삭제</button>
-        </div>
-      `;
-      block.querySelector(".edit").addEventListener("click", () => editTimetable(entry.id));
-      block.querySelector(".delete").addEventListener("click", () => deleteTimetable(entry.id));
-      column.appendChild(block);
-    });
-    elements.timetableGrid.appendChild(column);
+  const board = document.createElement("div");
+  board.className = "timetable-board";
+  const weekStart = getWeekStart(new Date());
+  board.appendChild(createTimetableCorner());
+  [0, 1, 2, 3, 4, 5, 6].forEach((day, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    const header = document.createElement("div");
+    header.className = `timetable-header ${toDateKey(date) === getTodayKey() ? "today" : ""}`;
+    header.style.gridColumn = `${index + 2}`;
+    header.style.gridRow = "1";
+    header.innerHTML = `<span>${WEEK_DAYS[day]}</span><strong>${date.getDate()}</strong>`;
+    board.appendChild(header);
   });
+  for (let hour = 7; hour <= 21; hour += 1) {
+    const label = document.createElement("div");
+    label.className = "timetable-time";
+    label.style.gridColumn = "1";
+    label.style.gridRow = `${(hour - 7) * 2 + 2} / span 2`;
+    label.innerHTML = `<strong>${hour}</strong><span>${hour < 12 ? "am" : "pm"}</span>`;
+    board.appendChild(label);
+  }
+  for (let dayIndex = 0; dayIndex < 7; dayIndex += 1) {
+    for (let slot = 0; slot < 30; slot += 1) {
+      const cell = document.createElement("div");
+      cell.className = `timetable-cell ${slot % 2 === 0 ? "hour-line" : ""}`;
+      cell.style.gridColumn = `${dayIndex + 2}`;
+      cell.style.gridRow = `${slot + 2}`;
+      board.appendChild(cell);
+    }
+  }
+  const dayOrder = [0, 1, 2, 3, 4, 5, 6];
+  state.timetable.forEach((entry) => {
+    const dayIndex = dayOrder.indexOf(entry.day);
+    const startSlot = timeToTimetableSlot(entry.start);
+    const endSlot = timeToTimetableSlot(entry.end);
+    if (dayIndex === -1 || startSlot === null || endSlot === null || endSlot <= startSlot) return;
+    const block = document.createElement("div");
+    block.className = "timetable-entry";
+    block.style.gridColumn = `${dayIndex + 2}`;
+    block.style.gridRow = `${startSlot + 2} / span ${Math.max(1, endSlot - startSlot)}`;
+    block.style.background = entry.color;
+    block.innerHTML = `
+      <strong>${escapeHtml(entry.subject)}</strong>
+      <span>${entry.start} - ${entry.end}</span>
+      ${entry.memo ? `<em>${escapeHtml(entry.memo)}</em>` : ""}
+      <div class="timetable-actions">
+        <button class="small-button edit" type="button">수정</button>
+        <button class="danger-button delete" type="button">삭제</button>
+      </div>
+    `;
+    block.querySelector(".edit").addEventListener("click", () => editTimetable(entry.id));
+    block.querySelector(".delete").addEventListener("click", () => deleteTimetable(entry.id));
+    board.appendChild(block);
+  });
+  elements.timetableGrid.appendChild(board);
+}
+
+function createTimetableCorner() {
+  const corner = document.createElement("div");
+  corner.className = "timetable-corner";
+  corner.style.gridColumn = "1";
+  corner.style.gridRow = "1";
+  corner.textContent = "이번 주";
+  return corner;
+}
+
+function timeToTimetableSlot(time) {
+  if (!time) return null;
+  const [hours, minutes] = time.split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  const totalMinutes = hours * 60 + minutes;
+  const slot = Math.floor((totalMinutes - 7 * 60) / 30);
+  return Math.max(0, Math.min(30, slot));
 }
 
 function renderStats() {
@@ -892,7 +1203,6 @@ function renderStats() {
   elements.briefingGoalPercent.textContent = `${progress}%`;
   elements.briefingRemainingTasks.textContent = `${remainingTasks}개`;
   elements.briefingNextDday.textContent = getNextDdaySummary();
-  elements.briefingMemoPreview.textContent = getMemoPreview();
   if (state.goalMinutes && todayMinutes >= state.goalMinutes && state.lastGoalCelebratedDate !== getTodayKey()) {
     state.lastGoalCelebratedDate = getTodayKey();
     saveState();
@@ -945,8 +1255,9 @@ function renderSubjectTimes() {
 }
 
 function renderMemo() {
-  elements.memoInput.value = state.memoByDate[getTodayKey()] || "";
-  elements.briefingMemoPreview.textContent = getMemoPreview();
+  const memo = state.memoByDate[getTodayKey()] || "";
+  elements.memoInput.value = memo;
+  elements.briefingMemoInput.value = memo;
 }
 
 function renderAll() {
@@ -960,6 +1271,7 @@ function renderAll() {
   renderCalendar();
   renderTimetable();
   renderMemo();
+  renderGoogleCalendarSettings();
 }
 
 function exportData() {
@@ -1012,6 +1324,13 @@ function getWeekDateKeys() {
     date.setDate(monday.getDate() + index);
     return toDateKey(date);
   });
+}
+
+function getWeekStart(date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - start.getDay());
+  return start;
 }
 
 function getWeekStudyMinutes() {

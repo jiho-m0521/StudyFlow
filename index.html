@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyFlow Web</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260522-2">
 </head>
 <body>
   <div class="app-shell">
@@ -34,7 +34,7 @@
       </div>
       <div class="briefing-note">
         <span>오늘 메모</span>
-        <p id="briefingMemoPreview">아직 메모가 없습니다.</p>
+        <textarea id="briefingMemoInput" rows="5" placeholder="오늘 메모를 바로 적어보세요."></textarea>
       </div>
       <div class="briefing-quote">
         <p id="quoteText"></p>
@@ -407,6 +407,27 @@
             <p class="helper-text">브라우저 저장 데이터를 JSON 파일로 보관하거나 다시 가져올 수 있습니다.</p>
           </section>
 
+          <section class="card wide-card">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Google Calendar</p>
+                <h2>구글 캘린더 연동</h2>
+              </div>
+              <span id="googleStatusBadge" class="status-pill">미연결</span>
+            </div>
+            <form id="googleSettingsForm" class="stack-form">
+              <input id="googleClientIdInput" type="text" placeholder="Google OAuth Client ID" aria-label="Google OAuth Client ID">
+              <button class="secondary-button" type="submit">Client ID 저장</button>
+            </form>
+            <div class="button-row calendar-actions">
+              <button id="googleConnectButton" class="primary-button" type="button">Google 로그인</button>
+              <button id="googleDisconnectButton" class="ghost-button" type="button">연결 해제</button>
+              <button id="googleImportButton" class="secondary-button" type="button">가져오기</button>
+              <button id="googleExportButton" class="secondary-button" type="button">내보내기</button>
+            </div>
+            <p id="googleStatusText" class="helper-text">Google Cloud에서 만든 OAuth Client ID가 필요합니다. 승인된 리디렉션 URI에는 현재 사이트 주소를 등록하세요.</p>
+          </section>
+
           <section class="card">
             <div class="section-title">
               <div>
@@ -439,6 +460,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=20260522-2"></script>
 </body>
 </html>
