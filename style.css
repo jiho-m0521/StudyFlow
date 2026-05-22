@@ -219,6 +219,11 @@ h3 {
   background: linear-gradient(135deg, rgba(79, 126, 232, 0.16), rgba(84, 198, 164, 0.16));
 }
 
+.briefing-metric.dday {
+  grid-column: span 2;
+  min-height: 96px;
+}
+
 .briefing-metric span,
 .briefing-note span {
   display: block;
