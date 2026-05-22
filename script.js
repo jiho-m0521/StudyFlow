@@ -66,9 +66,7 @@ function cacheElements() {
 }
 
 function bindEvents() {
-  document.querySelectorAll(".nav-button").forEach((button) => {
-    button.addEventListener("click", () => showSection(button.dataset.section));
-  });
+  elements.sectionNav.addEventListener("click", handleNavClick);
   elements.themeToggle.addEventListener("click", toggleTheme);
   elements.newQuoteButton.addEventListener("click", showRandomQuote);
   elements.taskForm.addEventListener("submit", addTask);
@@ -97,6 +95,12 @@ function bindEvents() {
   elements.timetableCancelButton.addEventListener("click", resetTimetableForm);
   elements.exportDataButton.addEventListener("click", exportData);
   elements.importDataInput.addEventListener("change", importData);
+}
+
+function handleNavClick(event) {
+  const button = event.target.closest(".nav-button");
+  if (!button) return;
+  showSection(button.dataset.section);
 }
 
 function loadState() {
@@ -156,10 +160,17 @@ function saveState() {
 
 function showSection(sectionName) {
   if (!NAV_SECTIONS.includes(sectionName)) return;
-  document.querySelectorAll(".app-section").forEach((section) => section.classList.remove("active"));
-  document.querySelectorAll(".nav-button").forEach((button) => button.classList.toggle("active", button.dataset.section === sectionName));
-  document.getElementById(`section-${sectionName}`).classList.add("active");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.querySelectorAll(".app-section").forEach((section) => {
+    const isActive = section.id === `section-${sectionName}`;
+    section.classList.toggle("active", isActive);
+    section.hidden = !isActive;
+  });
+  document.querySelectorAll(".nav-button").forEach((button) => {
+    const isActive = button.dataset.section === sectionName;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-current", isActive ? "page" : "false");
+  });
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function setDefaultDates() {

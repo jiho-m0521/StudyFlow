@@ -22,16 +22,35 @@
       <button id="newQuoteButton" class="secondary-button" type="button">새 문구 보기</button>
     </section>
 
-    <nav class="section-nav" aria-label="주요 기능">
-      <button class="nav-button active" type="button" data-section="today">오늘</button>
-      <button class="nav-button" type="button" data-section="timer">타이머</button>
-      <button class="nav-button" type="button" data-section="records">기록</button>
-      <button class="nav-button" type="button" data-section="schedule">일정</button>
-      <button class="nav-button" type="button" data-section="settings">설정</button>
+    <nav id="sectionNav" class="section-nav" aria-label="주요 기능">
+      <button class="nav-button active" type="button" data-section="today" aria-label="오늘 섹션">
+        <span class="nav-icon">⌂</span>
+        <span>오늘</span>
+      </button>
+      <button class="nav-button" type="button" data-section="timer" aria-label="타이머 섹션">
+        <span class="nav-icon">◷</span>
+        <span>타이머</span>
+      </button>
+      <button class="nav-button" type="button" data-section="records" aria-label="기록 섹션">
+        <span class="nav-icon">▥</span>
+        <span>기록</span>
+      </button>
+      <button class="nav-button" type="button" data-section="schedule" aria-label="일정 섹션">
+        <span class="nav-icon">□</span>
+        <span>일정</span>
+      </button>
+      <button class="nav-button" type="button" data-section="settings" aria-label="설정 섹션">
+        <span class="nav-icon">⚙</span>
+        <span>설정</span>
+      </button>
     </nav>
 
     <main>
       <section id="section-today" class="app-section active">
+        <div class="mobile-section-title">
+          <p class="eyebrow">Today</p>
+          <h2>오늘</h2>
+        </div>
         <div class="summary-strip">
           <div class="summary-item">
             <span>오늘 공부</span>
@@ -104,7 +123,11 @@
         </div>
       </section>
 
-      <section id="section-timer" class="app-section">
+      <section id="section-timer" class="app-section" hidden>
+        <div class="mobile-section-title">
+          <p class="eyebrow">Focus</p>
+          <h2>타이머</h2>
+        </div>
         <div class="section-grid">
           <section class="card focus-card wide-card">
             <div class="section-title">
@@ -181,7 +204,11 @@
         </div>
       </section>
 
-      <section id="section-records" class="app-section">
+      <section id="section-records" class="app-section" hidden>
+        <div class="mobile-section-title">
+          <p class="eyebrow">Report</p>
+          <h2>기록</h2>
+        </div>
         <div class="section-grid">
           <section class="card wide-card">
             <div class="section-title">
@@ -232,7 +259,11 @@
         </div>
       </section>
 
-      <section id="section-schedule" class="app-section">
+      <section id="section-schedule" class="app-section" hidden>
+        <div class="mobile-section-title">
+          <p class="eyebrow">Plan</p>
+          <h2>일정</h2>
+        </div>
         <div class="section-grid">
           <section class="card wide-card">
             <div class="section-title">
@@ -319,7 +350,11 @@
         </div>
       </section>
 
-      <section id="section-settings" class="app-section">
+      <section id="section-settings" class="app-section" hidden>
+        <div class="mobile-section-title">
+          <p class="eyebrow">Settings</p>
+          <h2>설정</h2>
+        </div>
         <div class="section-grid">
           <section class="card">
             <div class="section-title">
